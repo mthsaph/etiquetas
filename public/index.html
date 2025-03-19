@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PJeOffice Pro</title>
+    <script src="pjeoffice-pro.js"></script>
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+<script>
+      const printerPort = "LPT1";
+      let content = ["^XA^LL240^FO50,30^ADN,11,8^FDPJeOffice Pro - Print Test^FS^FO482,30^ADN,11,8^FDPJeOffice Pro - Print Test^FS^FO40,54^ABN,11,7^FDSETOR DE PROTOCOLO GERAL E INTEGRADO^FS^FO472,54^ABN,11,7^FDSETOR DE PROTOCOLO GERAL E INTEGRADO^FS^FO80,74^ADN,11,8^FD99/99/9999 99:99 h^FS^FO512,74^ADN,11,8^FD99/99/9999 99:99 h^FS^FO50,92^ADN,11,8^FDProt. nro. 9999.9999999-9^FS^FO482,92^ADN,11,8^FDProt. nro. 9999.9999999-9^FS^FO80,115^BY2,3,50^BCN,,N,N,N^FD>;999999999999>69^FS^FO512,115^BY2,3,50^BCN,,N,N,N^FD>;999999999999>69^FS^FO60,170^ADN,11,8^FD9999999-99.9999.999.9999^FS^FO492,170^ADN,11,8^FD9999999-99.9999.999.9999^FS^FO60,190^ADN,11,8^FD^FS^FO492,190^ADN,11,8^FD^FS^FO88,210^ACN,11,7^FD[Apenas Teste]^FS^FO520,210^ACN,11,7^FD[Apenas Teste]^FS^FO40,230^ABN,11,7^FD^FS^FO472,230^ABN,11,7^FD^FS^XZ"];
+      const apiContext = {
+        "argument": {
+            "REQUEST_TIMEOUT" : 600000,            //Opcional: se não informado será considerado PJEOFFICE_DEFAULT_ARGUMENTS.REQUEST_TIMEOUT   
+        },
+        "onSuccess": function(data) {
+            alert('Legal, deu tudo certo!');
+        },
+        "onFailed": function(statusText) {
+            alert('Infelizmente não foi possível finalizar a ação!');
+        },    
+        "onUnavailable": function(statusText) {
+            alert('Favor abrir o PJEOfficePro!');
+        }
+     };
+
+    function removeAcentosECedilha(str) {
+        // Primeiro, normalize a string para separar caracteres base de seus acentos
+        return str
+            // Normaliza para a forma NFD (decompõe caracteres em caracteres base + marcas de combinação)
+            .normalize('NFD')
+            // Substitui o 'ç' e 'Ç' por 'c' e 'C' antes de remover acentos
+            .replace(/[çÇ]/g, match => match === 'ç' ? 'c' : 'C')
+            // Remove todos os acentos/marcas diacríticas
+            .replace(/[\u0300-\u036f]/g, '')
+    }
+
+
+    function dividirNoPrimeiroEspaco(texto) {
+        // Primeiro, remove espaços em branco consecutivos em todo o texto
+        const textoNormalizado = texto.replace(/\s+/g, ' ');
+        
+        // Encontra o índice do primeiro espaço
+        const indiceEspaco = textoNormalizado.indexOf(' ');
+        
+        // Se não houver espaço, retorna o texto normalizado como primeira entrada e string vazia como segunda
+        if (indiceEspaco === -1) {
+            return [textoNormalizado, ''];
+        }
+        
+        // Divide o texto em duas partes
+        const primeiraParte = textoNormalizado.substring(0, indiceEspaco);
+        const segundaParte = textoNormalizado.substring(indiceEspaco + 1);
+        
+        // Retorna as duas partes como um array
+        return [primeiraParte, segundaParte];
+    }
+
+
+    
+</script>
+<body>
+    <nav class="navbar bg-body-tertiary">
+        <div class="container-fluid" style = "background-color: #00295f;">
+          <span class="navbar-text text-center" style = "color: #FFFFFF;">
+            Justiça Federal de Mato Grosso do Sul
+        </span>
+        </div>
+      </nav>
+    <div _ngcontent-xjw-c40="" class="text-center"><img _ngcontent-xjw-c40="" src="jf.png" width="64" height="80" style="margin-top: 5px;"><!----><!----></div>
+    <div class = "text-center p-3">
+    <label class = "fonte">Descrição</label>
+    <div class="p-3"><input type="text" size = "45" id = "descricao"></div>
+    <label>Número</label>
+    <div class="p-3"><input type="text" size = "45"id = "patrimonio"></div>
+    <button id = "meuBotao">
+        IMPRIMIR ETIQUETA
+    </button>
+
+    <div><label class = "fonte">COPIAR E COLAR DE UMA PLANILHA</label>
+    <div class="p-3">        
+        <textarea id = "massData" rows="10" cols="200"></textarea>
+    </div></div>
+
+    <button id = "meuBotaoMassPrint">
+        IMPRIMIR ETIQUETAS EM LOTE
+    </button>
+    </div>
+
+    <script>
+        document.getElementById("meuBotao").addEventListener("click", function() {        
+            const valorDescricao = removeAcentosECedilha(document.getElementById("descricao").value).trim();
+            const num = document.getElementById("patrimonio").value;
+            const valorPatrimonio = num.replace(/[^0-9]/g, '');
+
+            if (valorPatrimonio != num){
+                alert("RAIOS E TROVÔES!!! NÃO HÁ SOMENTES NÚMEROS");
+                return;
+            }
+            if (Number(valorPatrimonio) >= 100000000){
+                alert("O GRANDE SENHOR DA MONTANHA NÃO PERMITE NÚMEROS MAIORES QUE 99999999!!!!");
+                return;
+            }
+            if (valorDescricao == "" || valorPatrimonio == ""){
+                alert("O PRÍNCIPE DAS TREVAS NÃO SE ALEGRA COM CAMPOS EM BRANCO!!!");
+                return;
+            }
+
+            const max = Math.min(valorDescricao.length, 26);
+            const descricaoAcima = valorDescricao.substring(0, max).trim();
+            const nvalorDescricao = valorDescricao.substring(max).trim();
+            const descricaoAbaixo = nvalorDescricao.substring(0, Math.min(nvalorDescricao.length, 26)).trim();
+
+            console.log(descricaoAcima, descricaoAbaixo)
+
+            const msg = "^XA ^LL240 ^FO10,30^A0N,40,60^FD" + valorPatrimonio + "^FS ^FO432,30^A0N,40,60^FD" + valorPatrimonio + "^FS ^FO10,80^BY3,3,80^BCN,,N,N,N^FD" + valorPatrimonio + "^FS ^FO432,80^BY3,3,80^BCN,,N,N,N^FD" + valorPatrimonio + "^FS ^FO10,170^A0N,25,28^FD" + descricaoAcima + "^FS ^FO10,200^A0N,25,28^FD" + descricaoAbaixo + "^FS ^FO432,170^A0N,25,28^FD" + descricaoAcima + "^FS ^FO432,200^A0N,25,28^FD" + descricaoAbaixo + "^FS ^XZ";
+            PjeOffice.printTag(printerPort, [msg], apiContext);
+        });
+
+        document.getElementById("meuBotaoMassPrint").addEventListener("click", function() {// MASS PRINT   
+            let content = [];     
+            const valor = removeAcentosECedilha(document.getElementById("massData").value).trim();
+            const L = valor.split("\n");
+            const L2 = L.map(v => v.replace(/[\t\n\r]/g, ' ').trim());
+            const L3 = L2.map(i => dividirNoPrimeiroEspaco(i));
+            const L4 = L3.map(v => [v[0].trim(), v[1].trim()])
+            for(let i = 0; i < L4.length; i++){
+                const valorPatrimonio = L4[i][0];
+                const valorDescricao = L4[i][1];
+                const max = Math.min(valorDescricao.length, 26);
+                const descricaoAcima = valorDescricao.substring(0, max).trim();
+                const nvalorDescricao = valorDescricao.substring(max).trim();
+                const descricaoAbaixo = nvalorDescricao.substring(0, Math.min(nvalorDescricao.length, 26)).trim();
+    
+                const msg = "^XA ^LL240 ^FO10,30^A0N,40,60^FD" + valorPatrimonio + "^FS ^FO432,30^A0N,40,60^FD" + valorPatrimonio + "^FS ^FO10,80^BY3,3,80^BCN,,N,N,N^FD" + valorPatrimonio + "^FS ^FO432,80^BY3,3,80^BCN,,N,N,N^FD" + valorPatrimonio + "^FS ^FO10,170^A0N,25,28^FD" + descricaoAcima + "^FS ^FO10,200^A0N,25,28^FD" + descricaoAbaixo + "^FS ^FO432,170^A0N,25,28^FD" + descricaoAcima + "^FS ^FO432,200^A0N,25,28^FD" + descricaoAbaixo + "^FS ^XZ";
+                console.log(msg)
+                content.push(msg);
+
+
+            }
+
+            PjeOffice.printTag(printerPort, content, apiContext);
+        });
+
+    </script>
+
+</body>
+</html>
